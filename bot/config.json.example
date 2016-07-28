@@ -1,5 +1,6 @@
 {
 	"token": "",
+	"gmap_key":"YOUR-KEY",
 	"app_id": "",
 	"channelID": "",
 	"getServer": "localhost",

@@ -88,14 +88,24 @@ db.Base.metadata.create_all(db.get_engine())
 
 ![Discord Message](static/discord.png)
 
+# Notification list commands
+You can now write ``!add 16`` or any Pokénumber to add that, ``!del 16`` to delete them and ``!read`` to read the notfication lList
+
 ```javascript
 npm install discord.js
 npm install request
+npm install node-geocoder
+npm install fs
 ```
 
 Running the Bot Application
 ```javascript
 node data.js
+```
+
+Changing the language in data.js line 113
+```javascript
+var message = '**' + pokemon.name + '** (' + pokemon.pokemon_id + ') gesichtet ! Verschwindet in **' + min_diff + '** minuten \n'+streetName+'';  
 ```
 
 ## License
