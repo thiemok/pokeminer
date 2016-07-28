@@ -127,7 +127,15 @@ clientBot.on("message", function (msg) {
 	
 		if( cmdTxt == "read" ) {
 			var config = require( __dirname + '/bot/config.json' );
-			clientBot.sendMessage(msg.channel, "Das sind die Eingetragenen Pokémon\n```\n" + config.pokeShow + "```", function(err, msg){
+			var buffer = config.pokeShow + '';
+			var array = buffer.split(',');
+			var showPokemon = "";
+			for(var i in array)
+			{
+				showPokemon += array[i] + " " + locale[array[i]] + " , ";
+			}
+			
+			clientBot.sendMessage(msg.channel, "Das sind die Eingetragenen Pokémon\n```\n" + showPokemon + "```", function(err, msg){
 				// 
 			});
 		}
