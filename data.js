@@ -130,9 +130,10 @@ clientBot.on("message", function (msg) {
 			var buffer = config.pokeShow + '';
 			var array = buffer.split(',');
 			var showPokemon = "";
+			array.sort();
 			for(var i in array)
 			{
-				showPokemon += array[i] + " " + locale[array[i]] + " , ";
+				showPokemon += array[i] + " " + locale[array[i]] + "\n";
 			}
 			
 			clientBot.sendMessage(msg.channel, "Das sind die Eingetragenen Pokémon\n```\n" + showPokemon + "```", function(err, msg){
