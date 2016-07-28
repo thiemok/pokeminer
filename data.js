@@ -10,6 +10,7 @@ var fs = require("fs");
 
 // Loading my Configs
 var config = require("./bot/config.json");
+var locale = require("./locales/pokemon."+config.locale+".json");
 
 var clientBot = new Discord.Client();
 
@@ -43,7 +44,7 @@ clientBot.on("error", function (error) {
 
 // CMD+C at terminal
 process.on("SIGINT", function () {
-    console.log("\n Whoa wait, let me logout first...");
+	console.log("\n Whoa wait, let me logout first...");
 	clientBot.logout();
 	process.exit(1);
 });
@@ -63,50 +64,49 @@ function checkPokemon() {
 }
 
 function parsePokemon(results) {
-var config = require("./bot/config.json");
-  if (!Object.keys(results) || Object.keys(results).length < 1) {
-    return;
-  }
-  foundPokemon = [];
-  for (pokemon in results) {
+	var config = require("./bot/config.json");
+	if (!Object.keys(results) || Object.keys(results).length < 1) {
+		return;
+	}
+	foundPokemon = [];
+	for (pokemon in results) {
 		if(config.pokeShow.indexOf(results[pokemon].pokemon_id) >= 0 ) {
 			// found
 		} else {
 			continue; // not found
 		}
-    foundPokemon.push(results[pokemon].key);
-    if (alreadySeen.indexOf(results[pokemon].key) > -1) {
-      continue;
-    }
+		foundPokemon.push(results[pokemon].key);
+		if (alreadySeen.indexOf(results[pokemon].key) > -1) {
+			continue;
+		}
 
-    newPokemonSighted(results[pokemon]);
-    alreadySeen.push(results[pokemon].key);
-  }
+		newPokemonSighted(results[pokemon]);
+		alreadySeen.push(results[pokemon].key);
+	}
 
-  clearStalePokemon(foundPokemon);
+	clearStalePokemon(foundPokemon);
 }
 
 function clearStalePokemon(pokemons) {
-  var oldSeen = alreadySeen;
-  for (id in oldSeen) {
-    var pokemon = pokemons.indexOf(oldSeen[id]);
-    if (pokemon > -1) {
-      continue;
-    }
+	var oldSeen = alreadySeen;
+	for (id in oldSeen) {
+		var pokemon = pokemons.indexOf(oldSeen[id]);
+		if (pokemon > -1) {
+			continue;
+	}
 
-    var index = alreadySeen.indexOf(oldSeen[id]);
-    alreadySeen.splice(index, 1);
-  }
+	var index = alreadySeen.indexOf(oldSeen[id]);
+		alreadySeen.splice(index, 1);
+	}
 }
 
 function newPokemonSighted(pokemon) {
-  var diff = new Date(pokemon.disappear_time * 1000) - Date.now();
-  diff = Math.floor(diff / 1000);
-  diff = Math.floor(diff / 60);
-  min_diff = diff % 60;
-  var url = mapUrl.split('{0}').join(pokemon.lat);
-  url = url.split('{1}').join(pokemon.lng);
-    
+	var diff = new Date(pokemon.disappear_time * 1000) - Date.now();
+	diff = Math.floor(diff / 1000);
+	diff = Math.floor(diff / 60);
+	min_diff = diff % 60;
+	var url = mapUrl.split('{0}').join(pokemon.lat);
+	url = url.split('{1}').join(pokemon.lng);
 
 	geocoder.reverse({lat:pokemon.lat, lon:pokemon.lng}, function(err, res) {
 		var streetName = res[0].formattedAddress;
@@ -117,10 +117,7 @@ function newPokemonSighted(pokemon) {
 			}
 		});
 	});
-  
-    
 }
-
 
 clientBot.on("message", function (msg) {
 
@@ -134,7 +131,7 @@ clientBot.on("message", function (msg) {
 				// 
 			});
 		}
-	
+
 		if( cmdTxt == "add" ) {
 			if (suffix) {
 				var config = require( __dirname + '/bot/config.json' );
@@ -144,11 +141,11 @@ clientBot.on("message", function (msg) {
 
 				if (array.indexOf(newItem) == -1) {
 					array.push(newItem);
-					clientBot.sendMessage(msg.channel, "Pokémon **"+suffix+"** wurde gespeichert :rainbow: ", function(err, msg){
-						// clientBot.deleteMessage(msg , {wait: 5000 * 1});
+					clientBot.sendMessage(msg.channel, "Pokémon **"+suffix+" - "+locale[suffix]+"** wurde gespeichert :rainbow: ", function(err, msg){
+						// 
 					});
 				} else {
-					clientBot.sendMessage(msg.channel, "Pokémon **"+suffix+"** ist schon in der Liste :warning:  ", function(err, msg){
+					clientBot.sendMessage(msg.channel, "Pokémon **"+suffix+" - "+locale[suffix]+"** ist schon in der Liste :warning:  ", function(err, msg){
 						//
 					});
 				}
@@ -170,7 +167,7 @@ clientBot.on("message", function (msg) {
 				var array = config.pokeShow;
 
 				if (array.indexOf(newItem) == -1) {
-					clientBot.sendMessage(msg.channel, "Pokémon **"+suffix+"** befindet sich nicht in der Liste :warning:  ", function(err, msg){
+					clientBot.sendMessage(msg.channel, "Pokémon **"+suffix+" - "+locale[suffix]+"** befindet sich nicht in der Liste :warning:  ", function(err, msg){
 						// 
 					});
 				} else {
@@ -178,7 +175,7 @@ clientBot.on("message", function (msg) {
 					if(i != -1) {
 						array.splice(i, 1);
 					}
-					clientBot.sendMessage(msg.channel, "Pokémon **"+suffix+"** wurde gelöscht :rainbow: ", function(err, msg){
+					clientBot.sendMessage(msg.channel, "Pokémon **"+suffix+" - "+locale[suffix]+"** wurde gelöscht :rainbow: ", function(err, msg){
 						// 
 					});
 				}

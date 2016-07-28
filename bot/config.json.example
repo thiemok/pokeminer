@@ -2,6 +2,7 @@
 	"token": "",
 	"gmap_key":"YOUR-KEY",
 	"app_id": "",
+	"locale": "de",
 	"channelID": "",
 	"getServer": "localhost",
 	"CheckMinutes": 2,

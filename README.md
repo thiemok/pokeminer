@@ -103,7 +103,7 @@ Running the Bot Application
 node data.js
 ```
 
-Changing the language in data.js line 113
+Changing the language in data.js line ``113,130,144,148,156,170,178,186``
 ```javascript
 var message = '**' + pokemon.name + '** (' + pokemon.pokemon_id + ') gesichtet ! Verschwindet in **' + min_diff + '** minuten \n'+streetName+'';  
 ```
