@@ -134,14 +134,6 @@ clientBot.on("message", function (msg) {
 				// 
 			});
 		}
-		
-		if( cmdTxt == "test" ) {
-			geocoder.reverse({lat:"51.420751", lon:"6.838356"}, function(err, res) {
-				clientBot.sendMessage(msg.channel, res[0].formattedAddress, function(err, msg){
-					// 
-				});
-			});
-		}
 	
 		if( cmdTxt == "add" ) {
 			if (suffix) {
