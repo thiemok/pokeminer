@@ -130,7 +130,7 @@ clientBot.on("message", function (msg) {
 			var buffer = config.pokeShow + '';
 			var array = buffer.split(',');
 			var showPokemon = "";
-			array.sort();
+			array.sort( function(a,b) { return b - a; } );
 			for(var i in array)
 			{
 				showPokemon += array[i] + " " + locale[array[i]] + "\n";
