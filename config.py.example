@@ -1,26 +1,19 @@
-﻿DB_ENGINE = 'sqlite:///db.sqlite'  # anything SQLAlchemy accepts
-MAP_START = (31.51231, 16.31231)  # top left corner
-MAP_END = (33.61231, 17.51234)  # bottom right corner
-GRID = (1, 1)  # row, column
+DB_ENGINE = 'sqlite:///db.sqlite'
+AREA_NAME = u'Wrocław'
+MAP_START = (12.3456, 34.5678)
+MAP_END = (13.4567, 35.6789)
+GRID = (2, 2)  # row, column
+CYCLES_PER_WORKER = 3
 
-# LAT_GAIN and LON_GAIN can be configured to tell how big a space between
-# points visited by worker should be. LAT_GAIN should also compensate for
-# differences in distance between degrees as you go north/south.
-LAT_GAIN = 0.0015
-LON_GAIN = 0.0025
+LAT_GAIN = 0.001
+LON_GAIN = 0.0015
 
 ACCOUNTS = [
-    # username, password, service (google/ptc)
-    ('account1', 'password', 'ptc'),
-	('account2', 'password', 'ptc'),
+    ('ash_ketchum', 'pik4chu', 'ptc'),
+    ('ziemniak_kalafior', 'ogorek', 'google'),
+    ('noideawhattoputhere', 's3cr3t', 'ptc'),
+    ('whatever', 'mammoth', 'google'),
 ]
 
-
-# Trash Pokemon won't be shown on the live map.
-# Their data will still be collected to the database.
-TRASH_IDS = [13, 16, 19, 41, 96, 21] 
-
-# List of stage 2 & rare evolutions to show in the report
-STAGE2 = [
-    3, 6, 9, 26, 38, 40, 51, 76, 94, 95, 104, 107, 110, 115, 122, 123, 128, 132, 139, 141, 142, 143, 148, 149, 150, 151
-]
+TRASH_IDS = [13, 16, 19, 21, 41, 96]
+STAGE2 = [94, 139, 141, 149]

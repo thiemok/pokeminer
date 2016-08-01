@@ -17,6 +17,17 @@ import utils
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
+# Check whether config has all necessary attributes
+REQUIRED_SETTINGS = (
+    'GRID',
+    'AREA_NAME',
+    'REPORT_SINCE',
+)
+for setting_name in REQUIRED_SETTINGS:
+    if not hasattr(app_config, setting_name):
+        raise RuntimeError('Please set "{}" in config'.format(setting_name))
+
+
 with open('credentials.json') as f:
     credentials = json.load(f)
 
@@ -60,14 +71,18 @@ app = create_app()
 
 
 @app.route('/data')
-def data():
-    """Gets all the PokeMarkers via REST"""
+def pokemon_data():
     return json.dumps(get_pokemarkers())
 
 @app.route('/discord')
 def discord():
     """Gets all the PokeMarkers via REST"""
     return json.dumps(get_pokeDiscord())
+
+@app.route('/workers_data')
+def workers_data():
+    return json.dumps(get_worker_markers())
+
 
 @app.route('/config')
 def config():
@@ -118,20 +133,6 @@ def get_pokeDiscord():
 
 def get_pokemarkers():
     markers = []
-
-    total_workers = app_config.GRID[0] * app_config.GRID[1]
-    for worker_no in range(total_workers):
-        coords = utils.get_start_coords(worker_no)
-        markers.append({
-            'icon': icons.dots.red,
-            'lat': coords[0],
-            'lng': coords[1],
-            'infobox': 'Worker %d' % worker_no,
-            'type': 'custom',
-            'key': 'start-position-%d' % worker_no,
-            'disappear_time': -1
-        })
-
     session = db.Session()
     pokemons = db.get_sightings(session)
     session.close()
@@ -169,6 +170,33 @@ def get_pokemarkers():
             'infobox': label
         })
 
+    return markers
+
+
+def get_worker_markers():
+    markers = []
+    points = utils.get_points_per_worker()
+    # Worker start points
+    for worker_no, worker_points in enumerate(points):
+        coords = utils.get_start_coords(worker_no)
+        markers.append({
+            'icon': icons.dots.green,
+            'lat': coords[0],
+            'lng': coords[1],
+            'infobox': 'Worker %d' % worker_no,
+            'type': 'custom',
+            'subtype': 'worker',
+            'key': 'start-position-%d' % worker_no,
+            'disappear_time': -1
+        })
+        # Circles
+        for i, point in enumerate(worker_points):
+            markers.append({
+                'lat': point[0],
+                'lng': point[1],
+                'infobox': 'Worker %d point %d' % (worker_no, i),
+                'subtype': 'point',
+            })
     return markers
 
 
@@ -226,11 +254,14 @@ def report_main():
     }
     session_stats = db.get_session_stats(session)
     session.close()
+
+    area = utils.get_scan_area()
+
     return render_template(
         'report.html',
         current_date=datetime.now(),
-        city=u'Wrocław',
-        area=96,
+        area_name=app_config.AREA_NAME,
+        area_size=area,
         total_spawn_count=session_stats['count'],
         spawns_per_hour=session_stats['per_hour'],
         session_start=session_stats['start'],
@@ -238,6 +269,33 @@ def report_main():
         session_length_hours=int(session_stats['length_hours']),
         js_data=js_data,
         icons=icons,
+    )
+
+
+@app.route('/report/<int:pokemon_id>')
+def report_single(pokemon_id):
+    session = db.Session()
+    session_stats = db.get_session_stats(session)
+    js_data = {
+        'charts_data': {
+            'hours': db.get_spawns_per_hour(session, pokemon_id),
+        },
+        'map_center': utils.get_map_center(),
+        'zoom': 13,
+    }
+    session.close()
+    return render_template(
+        'report_single.html',
+        current_date=datetime.now(),
+        area_name=app_config.AREA_NAME,
+        area_size=utils.get_scan_area(),
+        pokemon_id=pokemon_id,
+        pokemon_name=pokemon_names[str(pokemon_id)],
+        total_spawn_count=db.get_total_spawns_count(session, pokemon_id),
+        session_start=session_stats['start'],
+        session_end=session_stats['end'],
+        session_length_hours=int(session_stats['length_hours']),
+        js_data=js_data,
     )
 
 
@@ -252,11 +310,8 @@ def sighting_to_marker(sighting):
 @app.route('/report/heatmap')
 def report_heatmap():
     session = db.Session()
-    points = session.query(db.Sighting.lat, db.Sighting.lon)
     pokemon_id = request.args.get('id')
-    if pokemon_id:
-        points = points.filter(db.Sighting.pokemon_id == int(pokemon_id))
-    points = points.all()
+    points = db.get_all_spawn_coords(session, pokemon_id=pokemon_id)
     session.close()
     return json.dumps(points)
 
