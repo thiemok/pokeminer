@@ -11,6 +11,8 @@ SCAN_DELAY = 10  # seconds
 
 SCAN_RADIUS = 70  # metres
 
+ENCRYPT = './libencrypt.so' # external encryption library
+
 ACCOUNTS = [
     ('ash_ketchum', 'pik4chu', 'ptc'),
     ('ziemniak_kalafior', 'ogorek', 'google'),
