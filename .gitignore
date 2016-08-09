@@ -5,3 +5,5 @@ db.sqlite
 *.log
 node_modules/
 bot/config.json
+templates/footer.html
+*.so
