@@ -7,3 +7,5 @@ node_modules/
 bot/config.json
 templates/footer.html
 *.so
+*.dll
+*.dylib
