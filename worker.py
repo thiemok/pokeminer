@@ -30,7 +30,6 @@ REQUIRED_SETTINGS = (
     'ACCOUNTS',
     'SCAN_RADIUS',
     'SCAN_DELAY',
-    'WORKER_LOG_PATH',
 )
 for setting_name in REQUIRED_SETTINGS:
     if not hasattr(config, setting_name):
@@ -41,11 +40,11 @@ workers = {}
 local_data = threading.local()
 
 
-class CannotProcessStep(Exception):
-    """Raised when servers are too busy"""
+class MalformedResponse(Exception):
+    """Raised when server response is malformed"""
 
 
-def configure_logger(filename=config.WORKER_LOG_PATH):
+def configure_logger(filename='worker.log'):
     logging.basicConfig(
         filename=filename,
         format=(
@@ -108,18 +107,22 @@ class Slave(threading.Thread):
                     self.restart()
                     return
             except pgoapi_exceptions.AuthException:
+                logger.warning('Login failed!')
                 self.error_code = 'LOGIN FAIL'
                 self.restart()
                 return
             except pgoapi_exceptions.NotLoggedInException:
+                logger.error('Invalid credentials')
                 self.error_code = 'BAD LOGIN'
                 self.restart()
                 return
             except pgoapi_exceptions.ServerBusyOrOfflineException:
+                logger.info('Server too busy - restarting')
                 self.error_code = 'RETRYING'
                 self.restart()
                 return
             except pgoapi_exceptions.ServerSideRequestThrottlingException:
+                logger.info('Server throttling - sleeping for a bit')
                 time.sleep(random.uniform(1, 5))
                 continue
             except Exception:
@@ -134,7 +137,8 @@ class Slave(threading.Thread):
                 return
             try:
                 self.main()
-            except CannotProcessStep:
+            except MalformedResponse:
+                logger.warning('Malformed response received!')
                 self.error_code = 'RESTART'
                 self.restart()
             except Exception:
@@ -147,9 +151,11 @@ class Slave(threading.Thread):
                 return
             self.cycle += 1
             if self.cycle <= config.CYCLES_PER_WORKER:
+                logger.info('Going to sleep for a bit')
                 self.error_code = 'SLEEP'
                 self.running = False
                 time.sleep(random.randint(30, 60))
+                logger.info('AWAKEN MY MASTERS')
                 self.running = True
                 self.error_code = None
         self.error_code = 'RESTART'
@@ -172,9 +178,13 @@ class Slave(threading.Thread):
                 longitude=pgoapi_utils.f2i(point[1]),
                 cell_id=cell_ids
             )
-            logger.debug('Response: %s', response_dict)
-            if response_dict is False:
-                raise CannotProcessStep
+            if not isinstance(response_dict, dict):
+                logger.warning('Response: %s', response_dict)
+                raise MalformedResponse
+            responses = response_dict.get('responses')
+            if not responses:
+                logger.warning('Response: %s', response_dict)
+                raise MalformedResponse
             map_objects = response_dict['responses'].get('GET_MAP_OBJECTS', {})
             pokemons = []
             forts = []
@@ -381,7 +391,7 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
     if args.status_bar:
-        configure_logger(filename=config.WORKER_LOG_PATH)
+        configure_logger(filename='worker.log')
         logger.info('-' * 30)
         logger.info('Starting up!')
     else:

@@ -30,6 +30,7 @@ client = commands.Bot(command_prefix='!', description=DISCORD_MESSAGES['bot_desc
 already_seen = {}
 geolocator = GoogleV3(api_key=config.GOOGLE_MAPS_KEY)
 
+icon_path = './static/icons/{}.png'
 watchlist_path = 'watchlist.json'
 with open(watchlist_path) as json_data:
     watchlist = json.load(json_data)['watchlist'] 
@@ -39,7 +40,7 @@ async def on_ready():
 	print(DISCORD_MESSAGES['ready'][0].format(join_url))
 	print(DISCORD_MESSAGES['ready'][1])
 	print(DISCORD_MESSAGES['ready'][2].format(count_iterable(client.servers)))
-	client.loop.create_task(check_pokemon())
+	client.loop.create_task(sightings_update_task())
 	for id in config.DISCORD_CHANNELS:
 		channel = client.get_channel(id)
 		await client.send_message(channel, DISCORD_MESSAGES['ready_msg'])
@@ -99,7 +100,7 @@ async def check_pokemon():
 
 async def process_sighting(sighting):
 	if sighting.pokemon_id in watchlist:
-	    if sighting.id not in already_seen:
+	    if sighting.id not in already_seen.keys():
 		    already_seen[sighting.id] = sighting
 		    await report_sighting(sighting)
 
@@ -112,18 +113,18 @@ async def report_sighting(sighting):
 
 	for id in config.DISCORD_CHANNELS:
 		channel = client.get_channel(id)
-		await client.send_message(channel, message)
+		await client.send_file(channel, icon_path.format(sighting.pokemon_id), content=message)
 
 async def sightings_update_task():
     await client.wait_until_ready()
     while not client.is_closed:
     	await check_pokemon()
-    	await asyncio.sleep(config.DISCORD_UPDATE_INTERVAL * 60)
+    	await asyncio.sleep(60 * config.DISCORD_UPDATE_INTERVAL)
 
 def remove_stale_sightings():
 	old_seen = already_seen.copy()
 	for key in old_seen:
-		if old_seen[key].expire_timestamp > time.time():
+		if old_seen[key].expire_timestamp < time.time():
 			del already_seen[key]
 
 def count_iterable(i):

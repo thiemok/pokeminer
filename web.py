@@ -22,11 +22,12 @@ REQUIRED_SETTINGS = (
     'AREA_NAME',
     'REPORT_SINCE',
     'SCAN_RADIUS',
+    'MAP_PROVIDER_URL',
+    'MAP_PROVIDER_ATTRIBUTION',
 )
 for setting_name in REQUIRED_SETTINGS:
     if not hasattr(config, setting_name):
         raise RuntimeError('Please set "{}" in config'.format(setting_name))
-
 
 
 def get_args():
@@ -58,12 +59,14 @@ app = Flask(__name__, template_folder='templates')
 def pokemon_data():
     return json.dumps(get_pokemarkers())
 
+
 @app.route('/workers_data')
 def workers_data():
     return json.dumps({
         'points': get_worker_markers(),
         'scan_radius': config.SCAN_RADIUS,
     })
+
 
 @app.route('/')
 def fullmap():
@@ -72,7 +75,10 @@ def fullmap():
         'newmap.html',
         area_name=config.AREA_NAME,
         map_center=map_center,
+        map_provider_url=config.MAP_PROVIDER_URL,
+        map_provider_attribution=config.MAP_PROVIDER_ATTRIBUTION,
     )
+
 
 def get_pokemarkers():
     markers = []
